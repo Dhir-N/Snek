@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Snek</title>
+    <style>
+        html,body {
+            height: 100%;
+            margin: 0;
+        }
+        body{
+            background: black;
+            display:flex;
+            justify-content: center;
+            zoom: 90%;
+        }
+        canvas{
+            border: 1px solid white;
+        }
+        #song_btn{
+            height: 36px;
+            width:300px;
+            margin-top: 50px;
+            background-color:lightseagreen;
+            border-color:lightseagreen;
+            color: white;
+        }
+        #bg_colour_change{
+            height: 46px;
+            width: 200px;
+            margin-top: 150px;
+            margin-left: 5px;
+            background-color: midnightblue;
+            border-color: midnightblue;
+            color: white;
+        }
+        #colour{
+            height: 40px;
+            width: 175px;
+            margin-top: 150px;
+            background-color: midnightblue;
+            border-color: midnightblue;
+            color: white;
+        }
+        #song_btn2{
+            height: 36px;
+            width: 300px;
+            margin-top: 50px;
+            margin-left: 5px;
+            background-color:indigo;
+            border-color: indigo;
+            color: white;
+        }
+        #song_btn3{
+            height: 36px;
+            width: 300px;
+            margin-top: 50px;
+            margin-left: 5px;
+            background-color: mediumvioletred;
+            border-color: mediumvioletred;
+            color: white;
+        }
+        #song_btn4{
+            height: 36px;
+            width: 400px;
+            margin-top: 50px;
+            margin-left: 5px;
+            background-color: green;
+            border-color: green;
+            color: white;
+        }
+        #stop_audio{
+            height: 36px;
+            margin-top: 50px;
+            margin-left: 5px;
+            color: white;
+            background-color: mediumblue;
+            border-color: mediumblue;
+        }
+        #reset_bg_col{
+            height: 46px;
+            width: 100px;
+            margin-top: 150px;
+            margin-left: 2px;
+            background-color: midnightblue;
+            border-color: midnightblue;
+            color: white;
+        }
+    </style>
+    </head>
+    <body>
+        <audio id="audio1" src="Backroom_Inst..wav"></audio>
+        <audio id="audio2" src="Tattoo.mp3"></audio>
+        <audio id="audio3" src="Glock.mp3"></audio>
+        <audio id="audio4" src="Kid Cudi Inst..mp3"></audio>
+        <canvas width="400" height="400" id="game"></canvas>
+            <button onclick="playaudio()" id="song_btn">Play Backroom</button>
+            <button id="song_btn2" onclick="playaudio2()">Play Tattoo</button>
+            <button id="song_btn3" onclick="playaudio3()">Play Glock</button>
+            <button id="song_btn4" onclick="playaudio4()">Play Kid Cudi</button>
+            <button id="stop_audio" onclick="stopaudio()">Stop Audio</button>
+            <input id="colour" placeholder="Enter a background colour" type="text">
+            <button id="bg_colour_change" onclick="change_bg_col()">Change Background Colour</button>
+            <button id="reset_bg_col" onclick="reset_bg()">Reset Background Colour</button>
+            <h2 style="color: white;">Score: </h2> <h2 id="score" style="color: white;"></h2>
+        <script>
+            var score = 0;
+            console.log(score);
+            document.getElementById("score").innerHTML = score;
+
+            function playaudio(){
+                document.getElementById("audio1").play();
+                document.getElementById("audio1").loop = true;
+            }
+
+            function playaudio2(){
+                document.getElementById("audio2").play();
+                document.getElementById("audio2").loop = true;
+            }
+
+            function playaudio3(){
+                document.getElementById("audio3").play();
+                document.getElementById("audio3").loop = true;
+            }
+
+            function playaudio4(){
+                document.getElementById("audio4").play();
+                document.getElementById("audio4").loop = true;
+            }
+
+            function stopaudio(){
+                const audio_1 = document.querySelector("#audio1");
+                const audio_2 = document.querySelector("#audio2");
+                const audio_3 = document.querySelector("#audio3");
+                const audio_4 = document.querySelector("#audio4");
+
+                audio_1.pause();
+                audio_1.currentTime = 0;
+
+                audio_2.pause();
+                audio_2.currentTime = 0;
+
+                audio_3.pause();
+                audio_3.currentTime = 0;
+
+                audio_4.pause();
+                audio_4.currentTime = 0;
+            }
+
+            function change_bg_col(){
+                colour = document.getElementById("colour").value;
+                document.body.style.background = colour;
+            }
+            
+            function reset_bg(){
+                document.body.style.background = "black";
+            }
+
+            var canvas = document.getElementById('game');
+            var ctx = canvas.getContext('2d');
+            var grid = 16;
+            var count = 0;
+
+            var snake = {
+                x: 160,
+                y:160,
+
+                // snake velocity. moves one grid length every frame in either the x or y direction
+                dx: grid,
+                dy: 0,
+
+                 // keep track of all grids the snake body occupies
+                 cells: [],
+
+                 //length of the snake. grows when eating an apple
+                 maxCells: 4
+            };
+
+            var apple = {
+                x: 320,
+                y: 320
+            };
+
+            //get random whole numbers in a specific range 
+
+            function getRandomInteger(min,max){
+                return Math.floor(Math.random() * (max - min)) + min;
+            }
+
+            //game loop
+            function loop(){
+                requestAnimationFrame(loop);
+
+                //slow game loop to 15 fps instead of 60 (60/15 = 4)
+                if (++count < 4){
+                    return;
+                }
+                count = 0;
+
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+
+                //move snake by it's velocity
+                snake.x += snake.dx;
+                snake.y += snake.dy;
+
+                //wrap snake position horizontally on edge of screen 
+                if (snake.x < 0) {
+                    snake.x = canvas.width - grid
+                } 
+                else if(snake.x >= canvas.width) {
+                    snake.x = 0;
+                }
+
+                //wrap snake position vertically on edge of screen
+
+               if (snake.y < 0) {
+                   snake.y= canvas.height - grid;
+               } 
+               else if(snake.y >= canvas.height) {
+                   snake.y = 0;
+               }
+                // keep track of where snake has been. front of the array is always the head
+                snake.cells.unshift({x: snake.x, y:snake.y});
+
+                //remove cells as we move away from them
+                if (snake.cells.length > snake.maxCells){
+                    snake.cells.pop();
+                }
+
+                //draw apple
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(apple.x, apple.y, grid-1, grid-1);
+
+                //draw snake one cell at a time
+                ctx.fillStyle = 'orange';
+                snake.cells.forEach(function(cell,index){
+                     // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
+                     ctx.fillRect(cell.x, cell.y, grid-1, grid-1);
+
+                     //snake ate apple
+                     if (cell.x === apple.x && cell.y === apple.y){
+                         snake.maxCells++;
+                         score = score + 1;
+                         document.getElementById("score").innerHTML = score
+
+                         //canvas is 400x400 = 25x25 grids
+
+                         apple.x = getRandomInteger(0,25) * grid;
+                         apple.y = getRandomInteger(0,25) * grid;
+                     }
+                     //check collision with all cells after this one (modified bubble sort)
+                     for (var i = index + 1; i < snake.cells.length; i++){
+                         //snake occupies same space as a body part. reset game
+                         if (cell.x === snake.cells[i].x && cell.y === snake.cells [i].y){
+                             snake.x = 160;
+
+                             snake.y = 160;
+
+                            snake.cells = [];
+
+                            snake.maxCells = 4;
+
+                            snake.dx = grid;
+
+                            snake.dy = 0;
+
+                            apple.x = getRandomInteger(0,25) * grid;
+
+                            apple.y = getRandomInteger(0,25) * grid;
+
+                            score = 0;
+                            document.getElementById("score").innerHTML = score;
+                         }
+                     }
+                });
+             }
+
+             //listen to keyboard events to move the snake
+
+             document.addEventListener('keydown', function(e){
+                 // prevent snake from backtracking on itself by checking that it's 
+                // not already moving on the same axis (pressing left while moving
+                 // left won't do anything, and pressing right while moving left
+                // shouldn't let you collide with your own body)
+
+                
+                // left arrow key
+
+
+  if (e.which === 37 && snake.dx === 0) {
+
+
+snake.dx = -grid;
+
+
+snake.dy = 0;
+
+
+}
+
+
+// up arrow key
+
+
+else if (e.which === 38 && snake.dy === 0) {
+
+
+snake.dy = -grid;
+
+
+snake.dx = 0;
+
+
+}
+
+
+// right arrow key
+
+
+else if (e.which === 39 && snake.dx === 0) {
+
+
+snake.dx = grid;
+
+
+snake.dy = 0;
+
+
+}
+
+
+// down arrow key
+
+
+else if (e.which === 40 && snake.dy === 0) {
+
+
+snake.dy = grid;
+
+
+snake.dx = 0;
+
+
+}
+
+
+});
+
+
+             //start the game
+
+             requestAnimationFrame(loop);
+        </script>
+    </body>
+</html>
